@@ -1,0 +1,101 @@
+---
+title: "Revised Blog Analysis"
+author: "Brian Perron"
+date: "September 12, 2014"
+output: html_document
+---
+
+Standard initialization
+
+
+```{r}
+rm(list=ls())
+libs <- c("tm", "tau", "stringr", "reshape2", "stringi")
+lapply(libs, require, character.only = TRUE)
+```
+
+Read the blog files and check the encoding
+```{r}
+blogs <- readLines("~/Git/capstoneCoursera/en_US/blogs.txt")
+unique(stri_enc_mark(blogs))
+```
+
+Do general cleaning of blogs
+```{r}
+blogs <- tolower(blogs)
+blogs <- gsub("/",   "", blogs)
+blogs <- gsub("'", '', blogs)
+blogs <- gsub("’", '', blogs)
+blogs <- gsub("‘", '', blogs)
+blogs <- gsub("′", '', blogs)
+blogs <- gsub("”", '', blogs)
+blogs <- gsub("“", '', blogs)
+blogs <- gsub("@",   "", blogs)
+blogs <- gsub("–", "", blogs)
+blogs <- gsub("\\|", "", blogs)
+blogs <- gsub("[!?,.]+", ".", blogs)
+blogs <- gsub("…", "", blogs)
+blogs <- gsub('[])(;:#%$^\\~{}[&+=@/"<>_]+', "", blogs)
+blogs <- removeWords(blogs, stopwords("english"))
+blogs <- stripWhitespace(blogs)
+```
+
+File is way too big -- let's start with taking a random subsample (XX).
+```{r}
+sampleLines <- c(1:length(blogs))
+sampleSize <- sample(sampleLines, length(blogs)/2, replace = FALSE)
+blogs <- blogs[sampleSize]
+```
+
+
+Create initial set of bi-grams and tri-grams
+```{r}
+bigrams <- textcnt(blogs, n = 2, method="string")
+bigrams <- bigrams[order(bigrams, decreasing = TRUE)]
+#print(bigrams[1:10])
+#print(trigrams[1:10])
+```
+
+Create bi-grams dataframe
+```{r}
+# Convert to data frame
+bigrams.df <- as.data.frame(bigrams)
+
+rm(bigrams) #General cleanup along the way
+
+# Create a new variable containing bigrams (currently as row names)
+bigrams.df$ng.1 <- rownames(bigrams.df)
+
+# Split the new variable into individual tokens
+bigrams.split <- colsplit(bigrams.df$ng.1, " ", c("ng1", "ng2"))
+
+# Create a new data frame with the tokens and the bi-gram count
+bigram.df.updated <- data.frame(bigrams.split, bigrams.df$bigrams)
+
+names(bigram.df.updated)[3] <- "count"
+
+bigram.df <- bigram.df.updated
+bigram.df <- bigram.df[complete.cases(bigram.df),]
+```
+
+Lots of stuff created.  Let's clean it all up and just keep the `bigram.df` object.  We can add more to the concatenating object if needed. 
+
+```{r}
+# Remove everything but X items
+rm(list = setdiff(ls(), c("bigram.df")))
+```
+
+```{r}
+bigram.f <- function(x){
+     a <- match(x, bigram.df[,1]) # Match patterns - fix to exact word
+     bigram.a <- bigram.df[a,] # Subset data
+     bigram.a.ordered <- bigram.a[with(bigram.a, order(-count)),]
+     bigram.final.5 <- bigram.a.ordered[1:5,]
+     bigram.final.5
+}
+```
+
+```{r}
+trigrams <- textcnt(blogs, n = 3, method="string")
+trigrams <- trigrams[order(trigrams, decreasing = TRUE)]
+```{r}
