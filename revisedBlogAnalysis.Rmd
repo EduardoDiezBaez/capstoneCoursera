@@ -10,14 +10,14 @@ Standard initialization
 
 ```{r initialization, warning=FALSE, message=FALSE, echo=FALSE}
 rm(list=ls())
-libs <- c("tm", "tau", "stringr", "reshape2", "stringi",, "microbenchmark")
+libs <- c("tm", "tau", "stringr", "reshape2", "stringi", "microbenchmark")
 lapply(libs, require, character.only = TRUE)
 ```
 
 Read the blog files and check the encoding
 ```{r readData, cache=TRUE}
 blogs <- readLines("~/Git/capstoneCoursera/en_US/blogs.txt")
-unique(stri_enc_mark(blogs))
+#unique(stri_enc_mark(blogs))
 ```
 
 File is way too big -- let's start with taking a random subsample (XX).
