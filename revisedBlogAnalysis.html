@@ -60,18 +60,29 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 
 <p>Standard initialization</p>
-<pre class="r"><code>rm(list=ls())
-library(tm)</code></pre>
-<pre><code>## Loading required package: NLP</code></pre>
-<pre><code>## Warning: package 'NLP' was built under R version 3.1.1</code></pre>
-<pre class="r"><code>library(tau)
-library(stringr)
-library(reshape2)
-library(stringi)</code></pre>
+<pre><code>## [[1]]
+## [1] TRUE
+## 
+## [[2]]
+## [1] TRUE
+## 
+## [[3]]
+## [1] TRUE
+## 
+## [[4]]
+## [1] TRUE
+## 
+## [[5]]
+## [1] TRUE</code></pre>
 <p>Read the blog files and check the encoding</p>
-<pre class="r"><code>blogs &lt;- readLines(&quot;~/Git/capstoneCoursera/en_US/blogs.txt&quot;, n=500)
+<pre class="r"><code>blogs &lt;- readLines(&quot;~/Git/capstoneCoursera/en_US/blogs.txt&quot;)
 unique(stri_enc_mark(blogs))</code></pre>
 <pre><code>## [1] &quot;native&quot; &quot;ASCII&quot;</code></pre>
+<p>File is way too big – let’s start with taking a random subsample (XX).</p>
+<pre class="r"><code>set.seed(33345)
+sampleLines &lt;- c(1:length(blogs))
+sampleSize &lt;- sample(sampleLines, length(blogs)/50, replace = FALSE)
+blogs &lt;- blogs[sampleSize]</code></pre>
 <p>Do general cleaning of blogs</p>
 <pre class="r"><code>blogs &lt;- tolower(blogs)
 blogs &lt;- gsub(&quot;/&quot;,   &quot;&quot;, blogs)
@@ -92,26 +103,8 @@ blogs &lt;- stripWhitespace(blogs)</code></pre>
 <p>Create initial set of bi-grams and tri-grams</p>
 <pre class="r"><code>bigrams &lt;- textcnt(blogs, n = 2, method=&quot;string&quot;)
 bigrams &lt;- bigrams[order(bigrams, decreasing = TRUE)]
-
-trigrams &lt;- textcnt(blogs, n = 3, method=&quot;string&quot;)
-trigrams &lt;- trigrams[order(trigrams, decreasing = TRUE)]
-
-print(bigrams[1:10])</code></pre>
-<pre><code>##     dont know     make sure       one day       day day     just like 
-##             5             5             5             4             4 
-##    last night     long time    us believe      year old around corner 
-##             4             4             4             4             3</code></pre>
-<pre class="r"><code>print(trigrams[1:10])</code></pre>
-<pre><code>##             believers insist can                     cab will run 
-##                                2                                2 
-##              chocolate ice cream                     done unto us 
-##                                2                                2 
-##                   every cab will                 every single day 
-##                                2                                2 
-##                  find iron tooth                  get chores done 
-##                                2                                2 
-##                  late last night legislature lavishes aquaculture 
-##                                2                                2</code></pre>
+#print(bigrams[1:10])
+#print(trigrams[1:10])</code></pre>
 <p>Create bi-grams dataframe</p>
 <pre class="r"><code># Convert to data frame
 bigrams.df &lt;- as.data.frame(bigrams)
@@ -127,16 +120,48 @@ bigram.df.updated &lt;- data.frame(bigrams.split, bigrams.df$bigrams)
 
 names(bigram.df.updated)[3] &lt;- &quot;count&quot;
 
-bigram.df &lt;- bigram.df.updated</code></pre>
-<pre class="r"><code># Remove everything but two items
-rm(list = setdiff(ls(), c(&quot;bigram.df&quot;, &quot;trigrams&quot;)))</code></pre>
-<pre class="r"><code>wordFinder &lt;- function(x){
-     a &lt;- grep(x, bigram.df[,1])
-     bigram.a &lt;- bigram.df[a,]
-     bigram.a &lt;- bigram.a[1:5,]
+bigram.df &lt;- bigram.df.updated
+bigram.df &lt;- bigram.df[complete.cases(bigram.df),]</code></pre>
+<p>Lots of stuff created. Let’s clean it all up and just keep the <code>bigram.df</code> object. We can add more to the concatenating object if needed.</p>
+<pre class="r"><code># Remove everything but X items
+rm(list = setdiff(ls(), c(&quot;bigram.df&quot;)))</code></pre>
+<p>Now, we can write a simple function that uses the basic bigram model. The user must enclose the word with quotation marks within the function.</p>
+<p><code>Question:</code> If the user doesn’t include quotes, can I automatically paste them into the function?</p>
+<pre class="r"><code>bigram.f &lt;- function(x){
+     a &lt;- match(x, bigram.df[,1]) # Match patterns - fix to exact word
+     bigram.a &lt;- bigram.df[a,] # Subset data
      bigram.a.ordered &lt;- bigram.a[with(bigram.a, order(-count)),]
-     print(bigram.a.ordered)
+     bigram.final.5 &lt;- bigram.a.ordered[1:5,]
+     bigram.final.5
 }</code></pre>
+<pre class="r"><code>bigram.f(&quot;beer&quot;)</code></pre>
+<pre><code>##       ng1  ng2 count
+## 2182 beer  can     5
+## NA   &lt;NA&gt; &lt;NA&gt;    NA
+## NA.1 &lt;NA&gt; &lt;NA&gt;    NA
+## NA.2 &lt;NA&gt; &lt;NA&gt;    NA
+## NA.3 &lt;NA&gt; &lt;NA&gt;    NA</code></pre>
+<pre class="r"><code>bigram.f(&quot;food&quot;)</code></pre>
+<pre><code>##       ng1  ng2 count
+## 6166 food bowl     3
+## NA   &lt;NA&gt; &lt;NA&gt;    NA
+## NA.1 &lt;NA&gt; &lt;NA&gt;    NA
+## NA.2 &lt;NA&gt; &lt;NA&gt;    NA
+## NA.3 &lt;NA&gt; &lt;NA&gt;    NA</code></pre>
+<pre class="r"><code>bigram.f(&quot;jump&quot;)</code></pre>
+<pre><code>##         ng1       ng2 count
+## 165188 jump blandford     1
+## NA     &lt;NA&gt;      &lt;NA&gt;    NA
+## NA.1   &lt;NA&gt;      &lt;NA&gt;    NA
+## NA.2   &lt;NA&gt;      &lt;NA&gt;    NA
+## NA.3   &lt;NA&gt;      &lt;NA&gt;    NA</code></pre>
+<pre class="r"><code>bigram.f(&quot;hello&quot;)</code></pre>
+<pre><code>##        ng1      ng2 count
+## 2420 hello everyone     5
+## NA    &lt;NA&gt;     &lt;NA&gt;    NA
+## NA.1  &lt;NA&gt;     &lt;NA&gt;    NA
+## NA.2  &lt;NA&gt;     &lt;NA&gt;    NA
+## NA.3  &lt;NA&gt;     &lt;NA&gt;    NA</code></pre>
 
 
 </div>
