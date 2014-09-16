@@ -16,7 +16,7 @@ lapply(libs, require, character.only = TRUE)
 
 Read the blog files and check the encoding
 ```{r}
-blogs <- readLines("~/Git/capstoneCoursera/en_US/blogs.txt")
+blogs <- readLines("~/Git/capstoneCoursera/en_US/blogs.txt", n = 5000)
 unique(stri_enc_mark(blogs))
 ```
 
@@ -42,9 +42,9 @@ blogs <- stripWhitespace(blogs)
 
 File is way too big -- let's start with taking a random subsample (XX).
 ```{r}
-sampleLines <- c(1:length(blogs))
-sampleSize <- sample(sampleLines, length(blogs)/4, replace = FALSE)
-blogs <- blogs[sampleSize]
+#sampleLines <- c(1:length(blogs))
+#sampleSize <- sample(sampleLines, length(blogs)/4, replace = FALSE)
+#blogs <- blogs[sampleSize]
 ```
 
 
@@ -67,12 +67,18 @@ rm(trigrams) #General cleanup along the way
 trigrams.df$ng.1 <- rownames(trigrams.df)
 
 # Split the new variable into individual tokens
-trigrams.split <- colsplit(trigrams.df$ng.1, " ", c("ng1", "ng2"))
+trigrams.splitA.df <- colsplit(trigrams.df$ng.1, " ", c("ng1", "ng2"))
+trigrams.splitB.df <- colsplit(trigrams.splitA.df$ng2, " ", c("ng2", "ng3"))
+
+trigramsAB <- rep(NA, length(trigrams.splitA.df[,1])) 
+for(i in 1:length(trigrams.splitA.df[,1])){
+     trigramsAB[i] <- paste(trigrams.splitA.df[i,1], trigrams.splitB.df[i,1], sep = " ", collapse = " ")
+     }
 
 # Create a new data frame with the tokens and the bi-gram count
-trigram.df.updated <- data.frame(trigrams.split, trigrams.df$trigrams)
+trigram.df.updated <- data.frame(trigrams.df, trigramsAB, trigrams.splitB.df$ng3)
 
-names(trigram.df.updated)[3] <- "count"
+names(trigram.df.updated)[4] <- "predicted" 
 
 trigram.df <- trigram.df.updated
 trigram.df <- trigram.df[complete.cases(trigram.df),]
@@ -84,6 +90,16 @@ Lots of stuff created.  Let's clean it all up and just keep the `bigram.df` obje
 # Remove everything but X items
 rm(list = setdiff(ls(), c("trigram.df")))
 ```
+
+# Assume the user types in two words.  Let's take that entry and split it just like we did in constructing the 
+# trigram datafram.  
+
+trigram.split.function <- function (x){
+          
+          
+          }
+
+
 
 ```{r}
 trigram.f <- function(x){
