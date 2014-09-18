@@ -16,7 +16,7 @@ lapply(libs, require, character.only = TRUE)
 
 Read the blog files and check the encoding
 ```{r}
-blogs <- readLines("~/Git/capstoneCoursera/en_US/blogs.txt", n = 5000)
+blogs <- readLines("~/Git/capstoneCoursera/en_US/twitter.txt")
 unique(stri_enc_mark(blogs))
 ```
 
@@ -42,9 +42,9 @@ blogs <- stripWhitespace(blogs)
 
 File is way too big -- let's start with taking a random subsample (XX).
 ```{r}
-#sampleLines <- c(1:length(blogs))
-#sampleSize <- sample(sampleLines, length(blogs)/4, replace = FALSE)
-#blogs <- blogs[sampleSize]
+sampleLines <- c(1:length(blogs))
+sampleSize <- sample(sampleLines, length(blogs)/2, replace = FALSE)
+blogs <- blogs[sampleSize]
 ```
 
 
@@ -84,30 +84,27 @@ trigram.df <- trigram.df.updated
 trigram.df <- trigram.df[complete.cases(trigram.df),]
 ```
 
-Lots of stuff created.  Let's clean it all up and just keep the `bigram.df` object.  We can add more to the concatenating object if needed. 
+Lots of stuff created.  Let's clean it all up and just keep the `trigram.df` object.  We can add more to the concatenating object if needed. 
 
 ```{r}
 # Remove everything but X items
 rm(list = setdiff(ls(), c("trigram.df")))
 ```
 
-# Assume the user types in two words.  Let's take that entry and split it just like we did in constructing the 
-# trigram datafram.  
-
-trigram.split.function <- function (x){
-          
-          
-          }
-
-
-
+# Assume the user types in two words.  Let's take that entry and match it up with ng 3
 ```{r}
-trigram.f <- function(x){
-     a <- match(x, trigram.df[,1]) # Match patterns - fix to exact word
-     trigram.a <- trigram.df[a,] # Subset data
-     trigram.a.ordered <- trigram.a[with(trigram.a, order(-count)),]
-     trigram.final.5 <- trigram.a.ordered[1:5,]
-     trigram.final.5
-}
+row.names(trigram.df) <- NULL 
+
+
+tri.f <- function (x){
+          lower.x <- tolower(x)
+          #a <- match(lower.x, trigram.df[,"trigramsAB"]) # Match patterns - fix to exact word
+          a <- grep(paste0(x, '$'), trigram.df[,"trigramsAB"]) 
+          trigram.a <- trigram.df[a,] # Subset data
+          trigram.a.ordered <- trigram.a[with(trigram.a, order(-trigrams)),]
+          trigram.final.5 <- trigram.a.ordered[1:5,]
+          trigram.final.5
+          }
 ```
+
 
