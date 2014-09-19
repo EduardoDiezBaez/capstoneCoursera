@@ -74,7 +74,22 @@ ord <- order(-freq)
 freq[head(ord)]; freq[tail(ord)]
 ```
 
+```{r}
+freq <- sort(colSums(as.matrix(tweets.dtm)), decreasing=FALSE)
+tail(freq, 14)
 
+wf <- data.frame(word = names(freq), freq=freq)
+
+p <- ggplot(subset(wf, freq > 500), aes(word, freq))
+
+p <- p + geom_bar(stat="identity")
+p <- p + theme(axis.text.x=element_text(angle=45, hjust=1))
+print(p)
+
+library(wordcloud)
+set.seed(123)
+wordcloud(names(freq), freq, min.freq=100)
+```
 
 
 
